@@ -38,9 +38,40 @@ class Parser: SyntaxVisitorBase {
     }
 
     func parseIdentifierExpression() -> Node {        
-        let node = VariableNode(identifier: currentToken.text)
+        let name = currentToken.text
         read()
-        return node
+        if currentToken.text == "(" {
+            read()
+            
+            var args: [CallExpressionNode.Argument] = []
+            
+            while true {
+                if currentToken.text == ")" {
+                    break
+                }
+                
+                let label = currentToken.text
+                read()
+                
+                precondition(currentToken.text == ":")
+                read()
+                
+                let arg = parseExpression()!
+                args.append(CallExpressionNode.Argument(label: label, value: arg))
+                
+                if currentToken.text == "," {
+                    read()
+                    continue
+                }
+            }
+            
+            precondition(currentToken.text == ")")
+            read()
+            
+            return CallExpressionNode(callee: name, arguments: args)
+        } else {
+            return VariableNode(identifier: name)
+        }
     }
 
     // MARK: Practice 3
@@ -125,11 +156,66 @@ class Parser: SyntaxVisitorBase {
     // MARK: Practice 4
 
     func parseFunctionDefinitionArgument() -> FunctionNode.Argument {
-        fatalError("Not Implemented")
+        let idn = currentToken.text
+        read()
+        
+        precondition(currentToken.text == ":")
+        read()
+        
+        precondition(currentToken.text == "Double")
+        read()
+        
+        return FunctionNode.Argument(label: idn,
+                                     variableName: idn)
     }
 
     func parseFunctionDefinition() -> Node {
-        fatalError("Not Implemented")
+        precondition(currentToken.text == "func")
+        read()
+        
+        let name = currentToken.text
+        read()
+        
+        precondition(currentToken.text == "(")
+        read()
+        
+        var args: [FunctionNode.Argument] = []
+        
+        while true {
+            if currentToken.text == ")" {
+                break
+            }
+            
+            let arg = parseFunctionDefinitionArgument()
+            args.append(arg)
+            if currentToken.text == "," {
+                read()
+                continue
+            }
+
+        }
+        
+        precondition(currentToken.text == ")")
+        read()
+        
+        precondition(currentToken.text == "->")
+        read()
+        
+        precondition(currentToken.text == "Double")
+        read()
+        
+        precondition(currentToken.text == "{")
+        read()
+        
+        let body = parseExpression()!
+        
+        precondition(currentToken.text == "}")
+        read()
+        
+        return FunctionNode(name: name,
+                            arguments: args,
+                            returnType: .double,
+                            body: body)
     }
 
     // MARK: Practice 7

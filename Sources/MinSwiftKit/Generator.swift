@@ -45,7 +45,7 @@ private struct Generator<NodeType: Node>: GeneratorProtocol {
 
 extension Generator where NodeType == NumberNode {
     func generate(with context: BuildContext) -> IRValue {
-        fatalError("Not Implemented")
+        return FloatType.double.constant(node.value)
     }
 }
 
