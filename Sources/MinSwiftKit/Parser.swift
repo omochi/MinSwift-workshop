@@ -60,18 +60,16 @@ class Parser: SyntaxVisitorBase {
         }
     }
 
-    private func parseBinaryOperatorRHS(expressionPrecedence: Int, lhs: Node) -> Node? {
+    private func parseBinaryOperatorRHS(expressionOperator: BinaryOperator?, lhs: Node) -> Node? {
         var lhs = lhs
         
         while true {
-            guard let binaryOperator = extractBinaryOperator(from: currentToken) else {
+            guard let currentOperator = extractBinaryOperator(from: currentToken) else {
                 break
             }
             
-            let operatorPrecedence = binaryOperator.precedence
-
             // Compare between operatorPrecedence and expressionPrecedence
-            if operatorPrecedence < expressionPrecedence {
+            if tighter(expressionOperator, currentOperator) {
                 break
             }
 
@@ -84,11 +82,11 @@ class Parser: SyntaxVisitorBase {
             // If binOperator binds less tightly with RHS than the operator after RHS, let
             // the pending operator take RHS as its LHS.
             if let nextOperator = extractBinaryOperator(from: currentToken!) {
-                if nextOperator.precedence > expressionPrecedence {
+                if tighter(nextOperator, currentOperator) {
                     // Search next RHS from currentRHS
                     // next precedence will be `operatorPrecedence + 1`
                     
-                    guard let newRHS = parseBinaryOperatorRHS(expressionPrecedence: operatorPrecedence + 1,
+                    guard let newRHS = parseBinaryOperatorRHS(expressionOperator: currentOperator,
                                                               lhs: rhs) else
                     {
                         return nil
@@ -98,12 +96,30 @@ class Parser: SyntaxVisitorBase {
                 }
             }
 
-            lhs = BinaryExpressionNode(binaryOperator,
+            lhs = BinaryExpressionNode(currentOperator,
                                        lhs: lhs,
                                        rhs: rhs)
         }
         
         return lhs
+    }
+    
+    private func tighter(_ a: BinaryOperator?,
+                         _ b: BinaryOperator?) -> Bool
+    {
+        if let a = a {
+            if let b = b {
+                return a.precedence > b.precedence
+            } else {
+                return true
+            }
+        } else {
+            if let _ = b {
+                return false
+            } else {
+                return true
+            }
+        }
     }
 
     // MARK: Practice 4
@@ -172,7 +188,7 @@ class Parser: SyntaxVisitorBase {
         guard let lhs = parsePrimary() else {
             return nil
         }
-        return parseBinaryOperatorRHS(expressionPrecedence: 0, lhs: lhs)
+        return parseBinaryOperatorRHS(expressionOperator: nil, lhs: lhs)
     }
 
     private func parseReturn() -> Node {

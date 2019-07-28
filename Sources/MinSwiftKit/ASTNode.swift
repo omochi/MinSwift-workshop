@@ -29,6 +29,8 @@ public struct BinaryExpressionNode: Node {
     }
 }
 
+public typealias BinaryOperator = BinaryExpressionNode.Operator
+
 public struct FunctionNode: Node {
     public let name: String
     public let arguments: [Argument]
